@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const VERSION = '1.0.0';
+
 export default function CollectorIdScreen({
   currentId,
   currentLocation,
@@ -24,7 +26,8 @@ export default function CollectorIdScreen({
   return (
     <div style={styles.container}>
       <p style={styles.brandHeader}>demographiKon</p>
-      <h1 style={styles.title}>Bear Hunt Survey</h1>
+      <h1 style={styles.title}>Voter Contact Survey</h1>
+      <p style={styles.version}>v{VERSION}</p>
       <h2 style={styles.subtitle}>Collector Details</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.fieldGroup}>
@@ -102,6 +105,11 @@ const styles = {
     fontWeight: 700,
     marginBottom: 4,
     color: '#1a1a2e',
+  },
+  version: {
+    fontSize: 12,
+    color: '#888',
+    margin: '0 0 16px 0',
   },
   subtitle: {
     fontSize: 16,
