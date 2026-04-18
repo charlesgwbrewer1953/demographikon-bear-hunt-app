@@ -33,10 +33,14 @@ export function buildCSV(responses) {
   return [header, ...rows].join('\n');
 }
 
-export function downloadCSV(responses) {
+export function downloadCSV(responses, collectorId, location) {
   const csv = buildCSV(responses);
   const date = new Date().toISOString().slice(0, 10);
-  const filename = `demographikon-bear-hunt-export-${date}.csv`;
+  const safeId = String(collectorId || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeLoc = String(location || '')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9_-]/g, '');
+  const filename = `${safeId}_${safeLoc}_${date}.csv`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

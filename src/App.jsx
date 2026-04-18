@@ -3,8 +3,10 @@ import { generateUUID } from './utils/uuid';
 import { shuffleParties, PARTIES } from './utils/randomise';
 import { saveResponse } from './utils/storage';
 import { useCollectorId } from './hooks/useCollectorId';
+import { useLocation } from './hooks/useLocation';
 import CollectorIdScreen from './components/CollectorIdScreen';
 import QuestionScreen from './components/QuestionScreen';
+import PartyContactScreen from './components/PartyContactScreen';
 import ConfirmationScreen from './components/ConfirmationScreen';
 import ExportScreen from './components/ExportScreen';
 
@@ -19,6 +21,8 @@ const PARTY_SUPPORT_OPTIONS = [
   'Prefer not to say',
 ];
 
+const TURNOUT_OPTIONS = ['I will vote', 'I may vote', "I won't vote"];
+
 const NAMED_PARTIES = new Set([
   'Conservative',
   'Labour',
@@ -27,15 +31,8 @@ const NAMED_PARTIES = new Set([
   'Reform UK',
 ]);
 
-const TURNOUT_OPTIONS = ['I will vote', 'I may vote', "I won't vote"];
-
-const CONTACT_EFFECT_OPTIONS = [
-  'No effect',
-  'Bit more likely to vote',
-  'Much more likely to vote',
-];
-
-const TOTAL_STEPS = 12;
+// 2 fixed questions + 5 party screens (one per party, leaflet + canvasser combined)
+const TOTAL_STEPS = 7;
 
 function buildInitialSurveyState() {
   return {
@@ -60,8 +57,9 @@ function buildInitialSurveyState() {
 
 export default function App() {
   const { collectorId, updateCollectorId } = useCollectorId();
+  const { location, updateLocation } = useLocation();
   const [screen, setScreen] = useState(() =>
-    collectorId ? 'survey' : 'collector'
+    collectorId && location ? 'survey' : 'collector'
   );
   const [survey, setSurvey] = useState(buildInitialSurveyState);
   const processingRef = useRef(false);
@@ -70,12 +68,14 @@ export default function App() {
     processingRef.current = false;
   }, [survey.step]);
 
-  function handleCollectorSubmit(id) {
+  function handleCollectorSubmit(id, loc) {
     updateCollectorId(id);
+    updateLocation(loc);
     setSurvey(buildInitialSurveyState());
     setScreen('survey');
   }
 
+  // Handles steps 0 and 1 (party support, turnout intention)
   function handleAnswer(value) {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -85,15 +85,25 @@ export default function App() {
 
     if (step === 0) {
       newAnswers.party_support = value;
-    } else if (step === 1) {
-      newAnswers.turnout_intention = value;
     } else {
-      const contactStep = step - 2;
-      const partyIndex = Math.floor(contactStep / 2);
-      const questionType = contactStep % 2 === 0 ? 'leaflet' : 'canvasser';
-      const fieldKey = `${partyOrder[partyIndex].key}_${questionType}`;
-      newAnswers[fieldKey] = value;
+      newAnswers.turnout_intention = value;
     }
+
+    setSurvey({ step: step + 1, partyOrder, answers: newAnswers });
+  }
+
+  // Handles steps 2–6 (one screen per party, both leaflet and canvasser)
+  function handlePartyAnswer(leafletValue, canvasserValue) {
+    if (processingRef.current) return;
+    processingRef.current = true;
+
+    const { step, partyOrder, answers } = survey;
+    const party = partyOrder[step - 2];
+    const newAnswers = {
+      ...answers,
+      [`${party.key}_leaflet`]: leafletValue,
+      [`${party.key}_canvasser`]: canvasserValue,
+    };
 
     const nextStep = step + 1;
 
@@ -102,6 +112,7 @@ export default function App() {
         response_id: generateUUID(),
         timestamp: new Date().toISOString(),
         collector_id: collectorId,
+        location,
         ...newAnswers,
         randomized_party_order: partyOrder.map((p) => p.key),
       };
@@ -110,41 +121,6 @@ export default function App() {
     } else {
       setSurvey({ step: nextStep, partyOrder, answers: newAnswers });
     }
-  }
-
-  function getCurrentQuestion() {
-    const { step, partyOrder, answers } = survey;
-
-    if (step === 0) {
-      return {
-        question: 'Which party do you support?',
-        options: PARTY_SUPPORT_OPTIONS,
-      };
-    }
-
-    if (step === 1) {
-      return {
-        question: 'How likely are you to vote at the next election?',
-        options: TURNOUT_OPTIONS,
-      };
-    }
-
-    const contactStep = step - 2;
-    const partyIndex = Math.floor(contactStep / 2);
-    const questionType = contactStep % 2 === 0 ? 'leaflet' : 'canvasser';
-    const party = partyOrder[partyIndex];
-
-    const selectedParty = answers.party_support;
-    const tail = NAMED_PARTIES.has(selectedParty)
-      ? `likelihood to vote for ${selectedParty}`
-      : `likelihood of voting`;
-
-    const question =
-      questionType === 'leaflet'
-        ? `If you received a leaflet from ${party.label}, what effect would it have on your ${tail}?`
-        : `If a ${party.label} canvasser knocked on your door, what effect would it have on your ${tail}?`;
-
-    return { question, options: CONTACT_EFFECT_OPTIONS };
   }
 
   function handleStartNextSurvey() {
@@ -156,6 +132,7 @@ export default function App() {
     return (
       <CollectorIdScreen
         currentId={collectorId}
+        currentLocation={location}
         onSubmit={handleCollectorSubmit}
         onGoToExport={() => setScreen('export')}
       />
@@ -163,15 +140,41 @@ export default function App() {
   }
 
   if (screen === 'survey') {
-    const { question, options } = getCurrentQuestion();
+    const { step, partyOrder, answers } = survey;
+
+    if (step < 2) {
+      const question =
+        step === 0
+          ? 'Which party do you support?'
+          : 'How likely are you to vote at the next election?';
+      const options = step === 0 ? PARTY_SUPPORT_OPTIONS : TURNOUT_OPTIONS;
+      return (
+        <QuestionScreen
+          question={question}
+          options={options}
+          currentStep={step + 1}
+          totalSteps={TOTAL_STEPS}
+          collectorId={collectorId}
+          onAnswer={handleAnswer}
+          onChangeCollectorId={() => setScreen('collector')}
+          onGoToExport={() => setScreen('export')}
+        />
+      );
+    }
+
+    const party = partyOrder[step - 2];
+    const questionTail = NAMED_PARTIES.has(answers.party_support)
+      ? `likelihood to vote for ${answers.party_support}`
+      : `likelihood of voting`;
+
     return (
-      <QuestionScreen
-        question={question}
-        options={options}
-        currentStep={survey.step + 1}
+      <PartyContactScreen
+        party={party}
+        questionTail={questionTail}
+        currentStep={step + 1}
         totalSteps={TOTAL_STEPS}
         collectorId={collectorId}
-        onAnswer={handleAnswer}
+        onAnswer={handlePartyAnswer}
         onChangeCollectorId={() => setScreen('collector')}
         onGoToExport={() => setScreen('export')}
       />
@@ -190,7 +193,9 @@ export default function App() {
   if (screen === 'export') {
     return (
       <ExportScreen
-        onBack={() => setScreen(collectorId ? 'survey' : 'collector')}
+        collectorId={collectorId}
+        location={location}
+        onBack={() => setScreen(collectorId && location ? 'survey' : 'collector')}
       />
     );
   }

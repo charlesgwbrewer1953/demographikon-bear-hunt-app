@@ -1,5 +1,6 @@
 const RESPONSES_KEY = 'bear_hunt_responses';
 const COLLECTOR_KEY = 'bear_hunt_collector_id';
+const LOCATION_KEY = 'bear_hunt_location';
 
 export function getResponses() {
   try {
@@ -22,4 +23,12 @@ export function getCollectorId() {
 
 export function saveCollectorId(id) {
   localStorage.setItem(COLLECTOR_KEY, id);
+}
+
+export function getLocation() {
+  return localStorage.getItem(LOCATION_KEY) || '';
+}
+
+export function saveLocation(loc) {
+  localStorage.setItem(LOCATION_KEY, loc);
 }

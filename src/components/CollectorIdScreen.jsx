@@ -1,36 +1,73 @@
 import { useState } from 'react';
 
-export default function CollectorIdScreen({ currentId, onSubmit, onGoToExport }) {
-  const [value, setValue] = useState(currentId || '');
+export default function CollectorIdScreen({
+  currentId,
+  currentLocation,
+  onSubmit,
+  onGoToExport,
+}) {
+  const [idValue, setIdValue] = useState(currentId || '');
+  const [locationValue, setLocationValue] = useState(currentLocation || '');
+  const [errors, setErrors] = useState({ collectorId: '', location: '' });
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (value.trim()) {
-      onSubmit(value.trim());
-    }
+    const newErrors = {
+      collectorId: idValue.trim() ? '' : 'Collector ID is required',
+      location: locationValue.trim() ? '' : 'Location is required',
+    };
+    setErrors(newErrors);
+    if (newErrors.collectorId || newErrors.location) return;
+    onSubmit(idValue.trim(), locationValue.trim());
   }
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>demographiKon Bear Hunt</h1>
-      <h2 style={styles.subtitle}>Enter Collector ID</h2>
+      <h2 style={styles.subtitle}>Collector Details</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Your collector ID"
-          style={styles.input}
-          autoFocus
-        />
-        <button
-          type="submit"
-          disabled={!value.trim()}
-          style={{
-            ...styles.button,
-            opacity: value.trim() ? 1 : 0.5,
-          }}
-        >
+        <div style={styles.fieldGroup}>
+          <label style={styles.label}>Collector ID</label>
+          <input
+            type="text"
+            value={idValue}
+            onChange={(e) => {
+              setIdValue(e.target.value);
+              if (errors.collectorId) setErrors((prev) => ({ ...prev, collectorId: '' }));
+            }}
+            placeholder="Your collector ID"
+            style={{
+              ...styles.input,
+              borderColor: errors.collectorId ? '#c0392b' : '#ccc',
+            }}
+            autoFocus
+          />
+          {errors.collectorId && (
+            <p style={styles.errorText}>{errors.collectorId}</p>
+          )}
+        </div>
+
+        <div style={styles.fieldGroup}>
+          <label style={styles.label}>Location</label>
+          <input
+            type="text"
+            value={locationValue}
+            onChange={(e) => {
+              setLocationValue(e.target.value);
+              if (errors.location) setErrors((prev) => ({ ...prev, location: '' }));
+            }}
+            placeholder="e.g. Manchester North"
+            style={{
+              ...styles.input,
+              borderColor: errors.location ? '#c0392b' : '#ccc',
+            }}
+          />
+          {errors.location && (
+            <p style={styles.errorText}>{errors.location}</p>
+          )}
+        </div>
+
+        <button type="submit" style={styles.button}>
           Start Survey
         </button>
       </form>
@@ -64,7 +101,18 @@ const styles = {
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 16,
+    gap: 20,
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#333',
   },
   input: {
     padding: '14px 16px',
@@ -74,6 +122,11 @@ const styles = {
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box',
+  },
+  errorText: {
+    margin: 0,
+    fontSize: 13,
+    color: '#c0392b',
   },
   button: {
     padding: '18px',

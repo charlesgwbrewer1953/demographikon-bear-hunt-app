@@ -1,11 +1,11 @@
 import { useSurveyStorage } from '../hooks/useSurveyStorage';
 import { downloadCSV } from '../utils/csvExport';
 
-export default function ExportScreen({ onBack }) {
+export default function ExportScreen({ collectorId, location, onBack }) {
   const { responses } = useSurveyStorage();
 
   function handleDownload() {
-    downloadCSV(responses);
+    downloadCSV(responses, collectorId, location);
   }
 
   return (
