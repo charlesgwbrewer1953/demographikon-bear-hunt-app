@@ -23,7 +23,8 @@ export default function CollectorIdScreen({
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>demographiKon Bear Hunt</h1>
+      <p style={styles.brandHeader}>demographiKon</p>
+      <h1 style={styles.title}>Bear Hunt Survey</h1>
       <h2 style={styles.subtitle}>Collector Details</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.fieldGroup}>
@@ -33,7 +34,8 @@ export default function CollectorIdScreen({
             value={idValue}
             onChange={(e) => {
               setIdValue(e.target.value);
-              if (errors.collectorId) setErrors((prev) => ({ ...prev, collectorId: '' }));
+              if (errors.collectorId)
+                setErrors((prev) => ({ ...prev, collectorId: '' }));
             }}
             placeholder="Your collector ID"
             style={{
@@ -54,7 +56,8 @@ export default function CollectorIdScreen({
             value={locationValue}
             onChange={(e) => {
               setLocationValue(e.target.value);
-              if (errors.location) setErrors((prev) => ({ ...prev, location: '' }));
+              if (errors.location)
+                setErrors((prev) => ({ ...prev, location: '' }));
             }}
             placeholder="e.g. Manchester North"
             style={{
@@ -86,14 +89,22 @@ const styles = {
     fontFamily: 'sans-serif',
     textAlign: 'center',
   },
+  brandHeader: {
+    fontFamily: "'Roboto', sans-serif",
+    fontWeight: 300,
+    fontSize: 20,
+    color: '#1a1a2e',
+    margin: '0 0 16px 0',
+    letterSpacing: '0.02em',
+  },
   title: {
     fontSize: 22,
     fontWeight: 700,
-    marginBottom: 8,
+    marginBottom: 4,
     color: '#1a1a2e',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 400,
     marginBottom: 32,
     color: '#555',

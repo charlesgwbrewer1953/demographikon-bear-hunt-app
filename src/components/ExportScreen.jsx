@@ -1,7 +1,7 @@
 import { useSurveyStorage } from '../hooks/useSurveyStorage';
 import { downloadCSV } from '../utils/csvExport';
 
-export default function ExportScreen({ collectorId, location, onBack }) {
+export default function ExportScreen({ collectorId, location, onBack, onGoToStart }) {
   const { responses } = useSurveyStorage();
 
   function handleDownload() {
@@ -10,9 +10,14 @@ export default function ExportScreen({ collectorId, location, onBack }) {
 
   return (
     <div style={styles.container}>
-      <button onClick={onBack} style={styles.backButton}>
-        ← Back
-      </button>
+      <p style={styles.brandHeader}>demographiKon</p>
+
+      <div style={styles.topNav}>
+        <button onClick={onBack} style={styles.backButton}>
+          ← Back
+        </button>
+      </div>
+
       <h1 style={styles.title}>Export Responses</h1>
       <div style={styles.card}>
         <p style={styles.count}>{responses.length}</p>
@@ -34,6 +39,9 @@ export default function ExportScreen({ collectorId, location, onBack }) {
       {responses.length === 0 && (
         <p style={styles.emptyNote}>No responses to export yet.</p>
       )}
+      <button onClick={onGoToStart} style={styles.newSurveyButton}>
+        New Survey
+      </button>
     </div>
   );
 }
@@ -45,6 +53,20 @@ const styles = {
     padding: '16px',
     fontFamily: 'sans-serif',
   },
+  brandHeader: {
+    fontFamily: "'Roboto', sans-serif",
+    fontWeight: 300,
+    fontSize: 20,
+    color: '#1a1a2e',
+    margin: '8px 0 4px 0',
+    letterSpacing: '0.02em',
+    textAlign: 'center',
+  },
+  topNav: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   backButton: {
     background: 'none',
     border: 'none',
@@ -52,7 +74,6 @@ const styles = {
     cursor: 'pointer',
     color: '#555',
     padding: '8px 0',
-    marginBottom: 16,
   },
   title: {
     fontSize: 22,
@@ -92,5 +113,17 @@ const styles = {
     color: '#999',
     marginTop: 16,
     fontSize: 14,
+  },
+  newSurveyButton: {
+    display: 'block',
+    width: '100%',
+    marginTop: 16,
+    padding: '18px',
+    fontSize: 18,
+    backgroundColor: '#fff',
+    color: '#1a1a2e',
+    border: '2px solid #1a1a2e',
+    borderRadius: 8,
+    cursor: 'pointer',
   },
 };

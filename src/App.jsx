@@ -169,6 +169,7 @@ export default function App() {
 
     return (
       <PartyContactScreen
+        key={party.key}
         party={party}
         questionTail={questionTail}
         currentStep={step + 1}
@@ -196,6 +197,10 @@ export default function App() {
         collectorId={collectorId}
         location={location}
         onBack={() => setScreen(collectorId && location ? 'survey' : 'collector')}
+        onGoToStart={() => {
+          setSurvey(buildInitialSurveyState());
+          setScreen('collector');
+        }}
       />
     );
   }

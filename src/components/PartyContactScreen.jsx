@@ -1,10 +1,30 @@
 import { useState } from 'react';
+import { PARTY_COLOURS } from '../utils/partyColours';
 
 const CONTACT_EFFECT_OPTIONS = [
   'No effect',
   'Bit more likely to vote',
   'Much more likely to vote',
 ];
+
+function PartyBadge({ party }) {
+  const colours = PARTY_COLOURS[party.key] || { bg: '#1a1a2e', text: '#ffffff' };
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        backgroundColor: colours.bg,
+        color: colours.text,
+        borderRadius: 4,
+        padding: '1px 7px',
+        fontWeight: 700,
+        fontSize: 'inherit',
+      }}
+    >
+      {party.label}
+    </span>
+  );
+}
 
 export default function PartyContactScreen({
   party,
@@ -21,6 +41,7 @@ export default function PartyContactScreen({
 
   const progressPct = Math.round((currentStep / totalSteps) * 100);
   const canProceed = leaflet !== null && canvasser !== null;
+  const colours = PARTY_COLOURS[party.key] || { bg: '#1a1a2e', text: '#ffffff' };
 
   return (
     <div style={styles.container}>
@@ -43,12 +64,21 @@ export default function PartyContactScreen({
         {currentStep} of {totalSteps}
       </p>
 
-      <h2 style={styles.partyTitle}>{party.label}</h2>
+      <h2
+        style={{
+          ...styles.partyTitle,
+          backgroundColor: colours.bg,
+          color: colours.text,
+        }}
+      >
+        {party.label}
+      </h2>
 
       <div style={styles.section}>
         <p style={styles.sectionQuestion}>
-          Leaflet: If you received a leaflet from {party.label}, what effect
-          would it have on your {questionTail}?
+          Leaflet: If you received a leaflet from{' '}
+          <PartyBadge party={party} />, what effect would it have on your{' '}
+          {questionTail}?
         </p>
         <div style={styles.optionList}>
           {CONTACT_EFFECT_OPTIONS.map((option) => (
@@ -57,7 +87,9 @@ export default function PartyContactScreen({
               onClick={() => setLeaflet(option)}
               style={{
                 ...styles.optionButton,
-                ...(leaflet === option ? styles.optionButtonSelected : {}),
+                ...(leaflet === option
+                  ? { backgroundColor: colours.bg, color: colours.text, borderColor: colours.bg }
+                  : {}),
               }}
             >
               {option}
@@ -68,8 +100,8 @@ export default function PartyContactScreen({
 
       <div style={styles.section}>
         <p style={styles.sectionQuestion}>
-          Canvasser: If a {party.label} canvasser knocked on your door, what
-          effect would it have on your {questionTail}?
+          Canvasser: If a <PartyBadge party={party} /> canvasser knocked on
+          your door, what effect would it have on your {questionTail}?
         </p>
         <div style={styles.optionList}>
           {CONTACT_EFFECT_OPTIONS.map((option) => (
@@ -78,7 +110,9 @@ export default function PartyContactScreen({
               onClick={() => setCanvasser(option)}
               style={{
                 ...styles.optionButton,
-                ...(canvasser === option ? styles.optionButtonSelected : {}),
+                ...(canvasser === option
+                  ? { backgroundColor: colours.bg, color: colours.text, borderColor: colours.bg }
+                  : {}),
               }}
             >
               {option}
@@ -154,8 +188,10 @@ const styles = {
   partyTitle: {
     fontSize: 22,
     fontWeight: 700,
-    color: '#1a1a2e',
     margin: '0 0 20px 0',
+    padding: '10px 16px',
+    borderRadius: 8,
+    display: 'inline-block',
   },
   section: {
     marginBottom: 24,
@@ -164,7 +200,7 @@ const styles = {
     fontSize: 16,
     fontWeight: 600,
     color: '#1a1a2e',
-    lineHeight: 1.4,
+    lineHeight: 1.5,
     margin: '0 0 12px 0',
   },
   optionList: {
@@ -182,11 +218,6 @@ const styles = {
     cursor: 'pointer',
     textAlign: 'left',
     width: '100%',
-  },
-  optionButtonSelected: {
-    backgroundColor: '#1a1a2e',
-    color: '#fff',
-    border: '2px solid #1a1a2e',
   },
   nextButton: {
     width: '100%',
