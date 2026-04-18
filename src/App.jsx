@@ -19,6 +19,14 @@ const PARTY_SUPPORT_OPTIONS = [
   'Prefer not to say',
 ];
 
+const NAMED_PARTIES = new Set([
+  'Conservative',
+  'Labour',
+  'Liberal Democrat',
+  'Green',
+  'Reform UK',
+]);
+
 const TURNOUT_OPTIONS = ['I will vote', 'I may vote', "I won't vote"];
 
 const CONTACT_EFFECT_OPTIONS = [
@@ -105,7 +113,7 @@ export default function App() {
   }
 
   function getCurrentQuestion() {
-    const { step, partyOrder } = survey;
+    const { step, partyOrder, answers } = survey;
 
     if (step === 0) {
       return {
@@ -126,10 +134,15 @@ export default function App() {
     const questionType = contactStep % 2 === 0 ? 'leaflet' : 'canvasser';
     const party = partyOrder[partyIndex];
 
+    const selectedParty = answers.party_support;
+    const tail = NAMED_PARTIES.has(selectedParty)
+      ? `likelihood to vote for ${selectedParty}`
+      : `likelihood of voting`;
+
     const question =
       questionType === 'leaflet'
-        ? `If you received a leaflet from ${party.label}, what effect would it have on your likelihood to vote for them?`
-        : `If a ${party.label} canvasser knocked on your door, what effect would it have on your likelihood to vote for them?`;
+        ? `If you received a leaflet from ${party.label}, what effect would it have on your ${tail}?`
+        : `If a ${party.label} canvasser knocked on your door, what effect would it have on your ${tail}?`;
 
     return { question, options: CONTACT_EFFECT_OPTIONS };
   }
